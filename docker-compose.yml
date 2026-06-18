@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: webdesk-postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: webdesk
+      POSTGRES_PASSWORD: webdesk_password
+      POSTGRES_DB: webdesk
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  postgres_data:
