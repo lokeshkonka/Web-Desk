@@ -17,6 +17,8 @@
     "@prisma/client": "6",
     "dotenv": "^17.4.2",
     "fastify": "^5.8.5",
-    "prisma": "6"
+    "pino": "^10.3.1",
+    "prisma": "6",
+    "redis": "^6.0.0"
   }
 }

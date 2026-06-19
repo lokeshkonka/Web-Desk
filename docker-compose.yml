@@ -2,7 +2,6 @@ services:
   postgres:
     image: postgres:17-alpine
     container_name: webdesk-postgres
-
     restart: unless-stopped
 
     environment:
@@ -15,7 +14,18 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis:
+    image: redis:8
+    container_name: webdesk-redis
+    restart: unless-stopped
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis_data:/data
 
 volumes:
   postgres_data:
+  redis_data:
