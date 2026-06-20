@@ -6,3 +6,27 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Workspace {
+  id          String   @id @default(uuid())
+  theme       String
+  wallpaper   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Folder {
+  id          String   @id @default(uuid())
+  name        String
+  parentId    String?
+  createdAt   DateTime @default(now())
+}
+
+model File {
+  id          String   @id @default(uuid())
+  name        String
+  type        String
+  size        Int
+  folderId    String?
+  createdAt   DateTime @default(now())
+}
