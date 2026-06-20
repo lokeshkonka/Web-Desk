@@ -1,12 +1,21 @@
 import Fastify from "fastify";
 import { healthRoutes } from "./Routes/Health.Route";
 import { env } from "./Configs/env";
+import cors from "@fastify/cors";
+import { workspaceRoutes } from "./Routes/Workspace.Route";
+import fileRoutes from "./Routes/File.Route";
 
 const app = Fastify({
   logger: true,
 });
 
+app.register(cors, {
+  origin: "*", // allow frontend
+});
+
 app.register(healthRoutes);
+app.register(workspaceRoutes);
+app.register(fileRoutes);
 
 const start = async () => {
   try {
