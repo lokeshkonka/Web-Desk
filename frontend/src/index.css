@@ -85,3 +85,51 @@ input[type="text"], input[type="search"], input[type="number"], input[type="emai
   scrollbar-width: auto;
   scrollbar-color: var(--color-surface-secondary) var(--color-background);
 }
+
+/* --- Theme Polish & Accessibility (Phase 11) --- */
+
+/* Focus states for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-accent) !important;
+  outline-offset: 2px !important;
+  border-radius: 2px;
+}
+
+/* Better typography contrast & shadows */
+.text-high-contrast {
+  color: #FFFFFF;
+  text-shadow: 0px 1px 2px rgba(0,0,0,0.8);
+}
+
+/* Smooth hover states for interactive elements */
+button, a, .clickable {
+  transition: transform 0.1s ease, filter 0.1s ease, background-color 0.2s ease;
+}
+
+button:hover:not(:disabled), a:hover {
+  filter: brightness(1.1);
+}
+
+button:active:not(:disabled), .clickable:active {
+  transform: scale(0.97);
+}
+
+/* Polished Shadows */
+.shadow-polished {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 10px 25px -3px rgba(0, 0, 0, 0.5);
+}
+
+/* Skeleton Loading Animation */
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.skeleton {
+  background: #352F44;
+  background-image: linear-gradient(to right, #352F44 0%, #453F54 20%, #352F44 40%, #352F44 100%);
+  background-repeat: no-repeat;
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear forwards;
+  border-radius: 4px;
+}
