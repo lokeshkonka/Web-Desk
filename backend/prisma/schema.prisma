@@ -19,6 +19,9 @@ model Folder {
   id          String   @id @default(uuid())
   name        String
   parentId    String?
+  parent      Folder?  @relation("Subfolders", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Folder[] @relation("Subfolders")
+  files       File[]
   createdAt   DateTime @default(now())
 }
 
@@ -27,6 +30,29 @@ model File {
   name        String
   type        String
   size        Int
+  mimeType    String?
+  path        String?
+  isDeleted   Boolean  @default(false)
   folderId    String?
+  folder      Folder?  @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  content     FileContent?
+}
+
+model FileContent {
+  id        String   @id @default(uuid())
+  fileId    String   @unique
+  content   String
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+}
+
+model Container {
+  id          String   @id @default(uuid())
+  containerId String
+  name        String
+  image       String   @default("node:22")
+  status      String
   createdAt   DateTime @default(now())
 }
