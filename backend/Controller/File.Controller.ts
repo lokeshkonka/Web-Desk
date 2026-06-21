@@ -52,6 +52,15 @@ export class FileController {
     }
   }
 
+  async getTrash(req: FastifyRequest, reply: FastifyReply) {
+    try {
+      const files = await fileService.getTrash();
+      return reply.send(files);
+    } catch (error) {
+      return reply.status(500).send({ error: 'Failed to fetch trash' });
+    }
+  }
+
   async createFile(req: FastifyRequest<{ Body: { name: string; type: string; size: number; folderId?: string } }>, reply: FastifyReply) {
     try {
       const { name, type, size, folderId } = req.body;
