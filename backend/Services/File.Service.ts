@@ -33,9 +33,13 @@ export class FileService {
   // Files
   async getFiles(folderId?: string) {
     if (folderId) {
-      return prisma.file.findMany({ where: { folderId } });
+      return prisma.file.findMany({ where: { folderId, isDeleted: false } });
     }
-    return prisma.file.findMany({ where: { folderId: null } });
+    return prisma.file.findMany({ where: { folderId: null, isDeleted: false } });
+  }
+
+  async getTrash() {
+    return prisma.file.findMany({ where: { isDeleted: true } });
   }
 
   async createFile(name: string, type: string, size: number, folderId?: string) {
