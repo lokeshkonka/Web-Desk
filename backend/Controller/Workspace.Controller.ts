@@ -1,4 +1,4 @@
-import { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyRequest, FastifyReply } from "fastify";
 import * as WorkspaceService from "../Services/Workspace.Service";
 
 export const getWorkspace = async (req: FastifyRequest, reply: FastifyReply) => {
