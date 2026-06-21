@@ -4,13 +4,14 @@ import { useDesktopStore } from '../../store/useDesktopStore';
 import type { WindowData } from '../../types';
 import { appRegistry, getAppContent } from '../../registry/appRegistry';
 import { useRef } from 'react';
+import { ErrorBoundary } from '../ErrorBoundary';
 
 export const Window = ({ windowData }: { windowData: WindowData }) => {
   const { closeWindow, minimizeWindow, setActiveWindow, activeWindowId } = useDesktopStore();
 
   const rndRef = useRef<any>(null);
 
-  const appMeta = appRegistry[windowData.id];
+  const appMeta = appRegistry[windowData.appId || windowData.id];
   const defaultWidth = appMeta?.defaultWidth || 500;
   const defaultHeight = appMeta?.defaultHeight || 350;
   const minWidth = appMeta?.minWidth || 300;
@@ -106,7 +107,9 @@ export const Window = ({ windowData }: { windowData: WindowData }) => {
                setActiveWindow(windowData.id);
             }} 
           >
-            {getAppContent(windowData.id)}
+            <ErrorBoundary>
+              {getAppContent(windowData.appId || windowData.id, windowData.id, windowData.initialData)}
+            </ErrorBoundary>
           </div>
         </motion.div>
       </Rnd>

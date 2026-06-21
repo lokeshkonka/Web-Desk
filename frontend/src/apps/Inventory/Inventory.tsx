@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import * as fsApi from '../../services/filesystem.api';
+import { uploadFileAPI, deleteFileAPI, permanentDeleteFileAPI, restoreFileAPI } from '../../services/upload.api';
+import { useEditorStore } from '../../store/editor.store';
+import { apiFetch, API_URL } from '../../services/api';
 
 interface Folder {
   id: string;
@@ -12,6 +15,7 @@ interface File {
   id: string;
   name: string;
   type: string;
+  mimeType?: string;
   size: number;
   folderId: string | null;
   createdAt: string;
@@ -31,20 +35,39 @@ export const Inventory = () => {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
 
+  // Upload & Drag Drop state
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const [isTrashView, setIsTrashView] = useState(false);
+
   const loadDirectory = async (folderId: string | null) => {
     try {
+      if (isTrashView) {
+        setFolders([]);
+        const trashFiles = await apiFetch('/files/trash');
+        setFiles(trashFiles);
+        return;
+      }
+
       const fetchedFolders = await fsApi.fetchFolders(folderId || undefined);
       const fetchedFiles = await fsApi.fetchFiles(folderId || undefined);
       setFolders(fetchedFolders);
       setFiles(fetchedFiles);
     } catch (error) {
-      console.error('Failed to load directory', error);
+      // Notification handled by apiFetch
     }
   };
 
   useEffect(() => {
     loadDirectory(currentFolderId);
-  }, [currentFolderId]);
+  }, [currentFolderId, isTrashView]);
+
+  const toggleTrashView = () => {
+    setIsTrashView(!isTrashView);
+    setCurrentFolderId(null);
+    setBreadcrumbs([{ id: null, name: isTrashView ? 'Root' : 'Trash' }]);
+  };
 
   const handleCreateFolder = async () => {
     const name = prompt('Folder name:', 'New Folder');
@@ -54,14 +77,42 @@ export const Inventory = () => {
     }
   };
 
+  const doUpload = async (file: globalThis.File) => {
+    try {
+      setUploadProgress(0);
+      await uploadFileAPI(file, currentFolderId || undefined, (prog: number) => setUploadProgress(prog));
+      loadDirectory(currentFolderId);
+    } catch (err) {
+      // Notification handled by apiFetch
+    } finally {
+      setUploadProgress(null);
+    }
+  };
+
   const handleUploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      await fsApi.createFile(file.name, file.type || 'unknown', file.size, currentFolderId || undefined);
-      loadDirectory(currentFolderId);
+      await doUpload(e.target.files[0]);
     }
     // Reset input
     e.target.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      await doUpload(e.dataTransfer.files[0]);
+    }
   };
 
   const handleNavigate = (folderId: string, folderName: string) => {
@@ -100,10 +151,27 @@ export const Inventory = () => {
   const closeContextMenu = () => setContextMenu(null);
 
   const handleDelete = async (type: 'folder' | 'file', id: string) => {
-    if (confirm('Are you sure you want to delete this?')) {
-      if (type === 'folder') await fsApi.deleteFolder(id);
-      else await fsApi.deleteFile(id);
+    if (isTrashView && type === 'file') {
+      if (confirm('Permanently delete this file?')) {
+        await permanentDeleteFileAPI(id);
+        loadDirectory(currentFolderId);
+      }
+    } else {
+      if (confirm('Are you sure you want to move this to trash?')) {
+        if (type === 'folder') await fsApi.deleteFolder(id);
+        else await deleteFileAPI(id);
+        loadDirectory(currentFolderId);
+      }
+    }
+    closeContextMenu();
+  };
+
+  const handleRestore = async (id: string) => {
+    try {
+      await restoreFileAPI(id);
       loadDirectory(currentFolderId);
+    } catch (err) {
+      // Error handled by notification store
     }
     closeContextMenu();
   };
@@ -123,6 +191,15 @@ export const Inventory = () => {
     setRenamingId(null);
   };
 
+  const openFile = (file: File) => {
+    if (file.type && ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(file.type.toLowerCase()) || file.mimeType?.startsWith('image/')) {
+      window.open(`${API_URL}/download/${file.id}`, '_blank');
+    } else {
+      const editorStore = useEditorStore.getState();
+      editorStore.openFile(file.id, file.name);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full bg-[var(--color-surface)] text-[var(--color-text-main)] font-content" onClick={closeContextMenu}>
       {/* Toolbar */}
@@ -136,13 +213,17 @@ export const Inventory = () => {
           
           <div className="h-6 w-[2px] bg-[#1E1B2E] mx-1" />
           
-          <button onClick={handleCreateFolder} className="px-3 py-1 bg-black/20 hover:bg-[var(--color-accent)]/20 border border-[#1E1B2E] rounded transition-colors flex items-center gap-2">
+          <button onClick={toggleTrashView} className={`px-3 py-1 border border-[#1E1B2E] rounded transition-colors flex items-center gap-2 ${isTrashView ? 'bg-[var(--color-accent)]/20' : 'bg-black/20 hover:bg-[var(--color-accent)]/20'}`}>
+            <span>🗑️</span> Trash
+          </button>
+          
+          <button onClick={handleCreateFolder} disabled={isTrashView} className="px-3 py-1 bg-black/20 hover:bg-[var(--color-accent)]/20 border border-[#1E1B2E] rounded transition-colors flex items-center gap-2 disabled:opacity-50">
             <span>+</span> New Folder
           </button>
           
-          <label className="px-3 py-1 bg-black/20 hover:bg-[var(--color-accent)]/20 border border-[#1E1B2E] rounded transition-colors flex items-center gap-2 cursor-pointer">
+          <label className={`px-3 py-1 bg-black/20 hover:bg-[var(--color-accent)]/20 border border-[#1E1B2E] rounded transition-colors flex items-center gap-2 ${isTrashView ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
             <span>&uarr;</span> Upload
-            <input type="file" className="hidden" onChange={handleUploadFile} />
+            <input type="file" className="hidden" onChange={handleUploadFile} disabled={isTrashView} />
           </label>
         </div>
 
@@ -175,9 +256,31 @@ export const Inventory = () => {
 
       {/* Main Content */}
       <div 
-        className="flex-1 overflow-auto p-4 bg-[var(--color-background)]"
+        className={`flex-1 overflow-auto p-4 transition-colors ${isDragging ? 'bg-[var(--color-accent)]/10 border-2 border-dashed border-[var(--color-accent)]' : 'bg-[var(--color-background)]'}`}
         onContextMenu={(e) => handleContextMenu(e, 'bg')}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
+        {isDragging && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <div className="bg-black/50 text-white text-2xl px-6 py-3 rounded backdrop-blur-sm border border-[var(--color-accent)]">
+              Drop files here
+            </div>
+          </div>
+        )}
+        
+        {uploadProgress !== null && (
+          <div className="absolute bottom-4 right-4 bg-black/80 border border-[#1E1B2E] p-4 rounded shadow-lg z-50 text-sm flex flex-col gap-2 min-w-[200px]">
+            <div className="flex justify-between">
+              <span>Uploading...</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="h-2 bg-[#1E1B2E] rounded overflow-hidden">
+              <div className="h-full bg-[var(--color-accent)] transition-all" style={{ width: `${uploadProgress}%` }} />
+            </div>
+          </div>
+        )}
         {filteredFolders.length === 0 && filteredFiles.length === 0 ? (
           <div className="h-full w-full flex flex-col items-center justify-center text-[var(--color-text-muted)] gap-4">
             <img src="/icons/desktop-apps/inventory.png" alt="Empty" className="w-16 h-16 opacity-30 grayscale" style={{ imageRendering: 'pixelated' }} />
@@ -222,7 +325,7 @@ export const Inventory = () => {
               <div 
                 key={file.id}
                 onContextMenu={(e) => handleContextMenu(e, 'file', file.id, file.name)}
-                onDoubleClick={() => alert(`Opening ${file.name}`)}
+                onDoubleClick={() => openFile(file)}
                 className={`group flex items-center p-2 rounded border-[2px] border-transparent hover:bg-black/20 cursor-pointer select-none
                   ${viewMode === 'grid' ? 'flex-col gap-2 text-center' : 'gap-3'}
                 `}
@@ -282,11 +385,20 @@ export const Inventory = () => {
 
           {contextMenu.type === 'file' && (
             <>
-              <button className="px-4 py-2 text-left text-sm hover:bg-[var(--color-accent)]/20" onClick={() => alert(`Opening ${contextMenu.name}`)}>Open</button>
-              <button className="px-4 py-2 text-left text-sm hover:bg-[var(--color-accent)]/20" onClick={() => startRename(contextMenu.id!, contextMenu.name!)}>Rename</button>
-              <button className="px-4 py-2 text-left text-sm hover:bg-[var(--color-accent)]/20" onClick={() => alert(`Downloading ${contextMenu.name}`)}>Download</button>
-              <div className="h-[2px] bg-[#1E1B2E] w-full my-1" />
-              <button className="px-4 py-2 text-left text-sm hover:bg-red-500/20 text-red-400" onClick={() => handleDelete('file', contextMenu.id!)}>Delete</button>
+              {isTrashView ? (
+                <>
+                  <button className="px-4 py-2 text-left text-sm hover:bg-[var(--color-accent)]/20" onClick={() => handleRestore(contextMenu.id!)}>Restore</button>
+                  <button className="px-4 py-2 text-left text-sm hover:bg-red-500/20 text-red-400" onClick={() => handleDelete('file', contextMenu.id!)}>Delete Permanently</button>
+                </>
+              ) : (
+                <>
+                  <button className="px-4 py-2 text-left text-sm hover:bg-[var(--color-accent)]/20" onClick={() => openFile(files.find(f => f.id === contextMenu.id) as File)}>Open</button>
+                  <button className="px-4 py-2 text-left text-sm hover:bg-[var(--color-accent)]/20" onClick={() => startRename(contextMenu.id!, contextMenu.name!)}>Rename</button>
+                  <button className="px-4 py-2 text-left text-sm hover:bg-[var(--color-accent)]/20" onClick={() => window.open(`${API_URL}/download/${contextMenu.id}`, '_blank')}>Download</button>
+                  <div className="h-[2px] bg-[#1E1B2E] w-full my-1" />
+                  <button className="px-4 py-2 text-left text-sm hover:bg-red-500/20 text-red-400" onClick={() => handleDelete('file', contextMenu.id!)}>Delete</button>
+                </>
+              )}
             </>
           )}
         </div>

@@ -1,29 +1,20 @@
-const API_URL = 'http://localhost:3000/api';
+import { apiFetch } from './api';
 
 export const fetchWorkspace = async () => {
   try {
-    const response = await fetch(`${API_URL}/workspace`);
-    if (!response.ok) throw new Error('Failed to fetch workspace');
-    return await response.json();
+    return await apiFetch('/workspace');
   } catch (error) {
-    console.error('API Error:', error);
-    return null;
+    return null; // fallback will be handled by store
   }
 };
 
 export const updateWorkspace = async (id: string, theme: string, wallpaper: string) => {
   try {
-    const response = await fetch(`${API_URL}/workspace`, {
+    return await apiFetch('/workspace', {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ id, theme, wallpaper }),
     });
-    if (!response.ok) throw new Error('Failed to update workspace');
-    return await response.json();
   } catch (error) {
-    console.error('API Error:', error);
     return null;
   }
 };

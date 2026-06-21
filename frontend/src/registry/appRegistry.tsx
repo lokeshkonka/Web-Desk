@@ -5,7 +5,22 @@ import { Workshop } from '../apps/Workshop/Workshop';
 import { Radio } from '../apps/Radio/Radio';
 import type { AppMetadata } from '../types';
 
+import { EditorApp } from '../apps/Editor/Editor';
+
+import { ContainersApp } from '../apps/Containers/ContainersApp';
+import { HealthDashboard } from '../apps/HealthDashboard/HealthDashboard';
+
 export const appRegistry: Record<string, AppMetadata> = {
+  editor: {
+    id: 'editor',
+    title: 'Editor',
+    icon: '/icons/desktop-apps/journal.png',
+    defaultWidth: 800,
+    defaultHeight: 600,
+    minWidth: 400,
+    minHeight: 300,
+    component: EditorApp,
+  },
   terminal: {
     id: 'terminal',
     title: 'Terminal',
@@ -55,10 +70,30 @@ export const appRegistry: Record<string, AppMetadata> = {
     minWidth: 300,
     minHeight: 400,
     component: Radio,
+  },
+  containers: {
+    id: 'containers',
+    title: 'Containers',
+    icon: '/icons/desktop-apps/system.png',
+    defaultWidth: 800,
+    defaultHeight: 600,
+    minWidth: 500,
+    minHeight: 400,
+    component: ContainersApp,
+  },
+  health: {
+    id: 'health',
+    title: 'System Health',
+    icon: '/icons/desktop-apps/system.png',
+    defaultWidth: 700,
+    defaultHeight: 500,
+    minWidth: 400,
+    minHeight: 300,
+    component: HealthDashboard,
   }
 };
 
-export const getAppContent = (appId: string) => {
+export const getAppContent = (appId: string, windowId: string, initialData?: any) => {
   const app = appRegistry[appId];
   if (!app) {
     return (
@@ -68,5 +103,5 @@ export const getAppContent = (appId: string) => {
     );
   }
   const Component = app.component;
-  return <Component />;
+  return <Component id={windowId} initialData={initialData} />;
 };

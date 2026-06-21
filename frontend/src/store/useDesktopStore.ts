@@ -9,7 +9,7 @@ interface DesktopState {
   windows: WindowData[];
   activeWindowId: string | null;
   
-  openWindow: (id: string, title: string, icon: string) => void;
+  openWindow: (id: string, title: string, icon: string, initialData?: any) => void;
   closeWindow: (id: string) => void;
   minimizeWindow: (id: string) => void;
   setActiveWindow: (id: string) => void;
@@ -29,15 +29,23 @@ const DEFAULT_APPS: DesktopApp[] = [
   { id: 'workshop', title: 'Workshop', icon: '/icons/desktop-apps/workspace.png', x: 20, y: 320 },
   { id: 'radio', title: 'Radio', icon: '/icons/desktop-apps/radio.png', x: 20, y: 420 },
   { id: 'calculator', title: 'Calculator', icon: '/icons/desktop-apps/calculator.png', x: 20, y: 520 },
+  { id: 'containers', title: 'Containers', icon: '/icons/desktop-apps/system.png', x: 20, y: 620 },
   { id: 'weather', title: 'Weather', icon: '/icons/desktop-apps/whether.png', x: 120, y: 20 },
   { id: 'trash', title: 'Trash', icon: '/icons/desktop-apps/trash.png', x: 120, y: 120 },
+  { id: 'health', title: 'Health', icon: '/icons/desktop-apps/system.png', x: 120, y: 220 },
 ];
 
 export const useDesktopStore = create<DesktopState>((set, get) => ({
   workspaceId: null,
   theme: localStorage.getItem('webdesk_theme') || 'cozy-retro',
   wallpaper: localStorage.getItem('webdesk_wallpaper') || 'pixel-cafe.png',
-  windows: [],
+  windows: (() => {
+    try {
+      const saved = localStorage.getItem('webdesk_windows');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [];
+  })(),
   activeWindowId: null,
   
   desktopApps: (() => {
@@ -87,48 +95,71 @@ export const useDesktopStore = create<DesktopState>((set, get) => ({
     }
   },
   
-  openWindow: (id, title, icon) => set((state) => {
-    const exists = state.windows.find(w => w.id === id);
-    if (exists) {
-      return {
-        windows: state.windows.map(w => 
-          w.id === id ? { ...w, isMinimized: false, zIndex: Math.max(...state.windows.map(win => win.zIndex), 0) + 1 } : w
-        ),
-        activeWindowId: id
-      };
+  openWindow: (appId, title, icon, initialData) => set((state) => {
+    const isMultiInstance = appId === 'terminal';
+    const windowId = isMultiInstance ? `${appId}-${Math.random().toString(36).substr(2, 6)}` : appId;
+
+    if (!isMultiInstance) {
+      const exists = state.windows.find(w => w.id === windowId);
+      if (exists) {
+        const updated = state.windows.map(w => 
+            w.id === windowId ? { ...w, isMinimized: false, zIndex: Math.max(...state.windows.map(win => win.zIndex), 0) + 1, initialData: initialData || w.initialData } : w
+        );
+        localStorage.setItem('webdesk_windows', JSON.stringify(updated));
+        return {
+          windows: updated,
+          activeWindowId: windowId
+        };
+      }
     }
     
     const newWindow: WindowData = {
-      id,
-      title,
+      id: windowId,
+      appId,
+      title: isMultiInstance ? `${title} (${windowId.split('-')[1]})` : title,
       icon,
       isOpen: true,
       isMinimized: false,
-      zIndex: Math.max(...state.windows.map(w => w.zIndex), 0) + 1
+      zIndex: Math.max(...state.windows.map(w => w.zIndex), 0) + 1,
+      initialData
     };
     
+    const newWindows = [...state.windows, newWindow];
+    localStorage.setItem('webdesk_windows', JSON.stringify(newWindows));
     return {
-      windows: [...state.windows, newWindow],
-      activeWindowId: id
+      windows: newWindows,
+      activeWindowId: windowId
     };
   }),
   
-  closeWindow: (id) => set((state) => ({
-    windows: state.windows.filter(w => w.id !== id),
-    activeWindowId: state.activeWindowId === id ? null : state.activeWindowId
-  })),
+  closeWindow: (id) => set((state) => {
+    const newWindows = state.windows.filter(w => w.id !== id);
+    localStorage.setItem('webdesk_windows', JSON.stringify(newWindows));
+    return {
+      windows: newWindows,
+      activeWindowId: state.activeWindowId === id ? null : state.activeWindowId
+    };
+  }),
   
-  minimizeWindow: (id) => set((state) => ({
-    windows: state.windows.map(w => 
+  minimizeWindow: (id) => set((state) => {
+    const newWindows = state.windows.map(w => 
       w.id === id ? { ...w, isMinimized: true } : w
-    ),
-    activeWindowId: state.activeWindowId === id ? null : state.activeWindowId
-  })),
+    );
+    localStorage.setItem('webdesk_windows', JSON.stringify(newWindows));
+    return {
+      windows: newWindows,
+      activeWindowId: state.activeWindowId === id ? null : state.activeWindowId
+    };
+  }),
   
-  setActiveWindow: (id) => set((state) => ({
-    windows: state.windows.map(w => 
+  setActiveWindow: (id) => set((state) => {
+    const newWindows = state.windows.map(w => 
       w.id === id ? { ...w, isMinimized: false, zIndex: Math.max(...state.windows.map(win => win.zIndex), 0) + 1 } : w
-    ),
-    activeWindowId: id
-  })),
+    );
+    localStorage.setItem('webdesk_windows', JSON.stringify(newWindows));
+    return {
+      windows: newWindows,
+      activeWindowId: id
+    };
+  }),
 }));

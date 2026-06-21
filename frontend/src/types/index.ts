@@ -1,10 +1,12 @@
 export interface WindowData {
   id: string;
+  appId?: string;
   title: string;
   icon: string;
   isOpen: boolean;
   isMinimized: boolean;
   zIndex: number;
+  initialData?: any;
 }
 
 export interface DesktopApp {
@@ -23,5 +25,5 @@ export interface AppMetadata {
   defaultHeight: number;
   minWidth: number;
   minHeight: number;
-  component: React.ComponentType;
+  component: React.ComponentType<any>;
 }
