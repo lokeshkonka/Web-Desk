@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useDesktopStore } from '../../store/useDesktopStore';
-import { useNotificationStore } from '../../store/notification.store';
+import { useDesktopStore } from '../store/useDesktopStore';
+import { useNotificationStore } from '../store/notification.store';
 
 export const KeyboardShortcuts: React.FC = () => {
   const { windows, activeWindowId, setActiveWindow, openWindow } = useDesktopStore();
@@ -28,7 +28,7 @@ export const KeyboardShortcuts: React.FC = () => {
       if (e.altKey && e.key === 'Tab') {
         e.preventDefault();
         if (windows.length > 1) {
-          const currentIndex = windows.findIndex(w => w.id === activeWindowId);
+          const currentIndex = windows.findIndex((w: any) => w.id === activeWindowId);
           const nextIndex = (currentIndex + 1) % windows.length;
           setActiveWindow(windows[nextIndex].id);
         } else if (windows.length === 1) {
