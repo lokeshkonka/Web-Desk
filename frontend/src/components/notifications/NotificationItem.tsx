@@ -1,5 +1,6 @@
 import React from 'react';
-import { Notification, useNotificationStore } from '../../store/notification.store';
+import { useNotificationStore } from '../../store/notification.store';
+import type { Notification } from '../../store/notification.store';
 
 interface Props {
   notification: Notification;
