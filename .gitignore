@@ -4,6 +4,7 @@
 node_modules/
 
 # Bun
+railway-steps.md
 bun.lockb
 
 # =========================
