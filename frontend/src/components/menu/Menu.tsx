@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopStore } from '../../store/useDesktopStore';
+import { useSystemStore } from '../../store/system.store';
 
 interface MenuProps {
   isOpen: boolean;
@@ -43,13 +44,20 @@ export const Menu = ({ isOpen, onClose }: MenuProps) => {
               {menuApps.map((app) => (
                 <button
                   key={app.id}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('appType', 'system');
+                    e.dataTransfer.setData('appId', app.id);
+                    e.dataTransfer.setData('appTitle', app.title);
+                    e.dataTransfer.setData('appIcon', app.icon);
+                  }}
                   onClick={() => {
                     openWindow(app.id, app.title, app.icon);
                     onClose();
                   }}
                   className="flex items-center gap-3 w-full p-2 rounded hover:bg-white/10 transition-colors text-left"
                 >
-                  <img src={app.icon} alt={app.title} className="w-6 h-6 drop-shadow-md" style={{ imageRendering: 'pixelated' }} />
+                  <img src={app.icon} alt={app.title} className="w-6 h-6 drop-shadow-md" style={{ imageRendering: 'pixelated' }} draggable={false} />
                   <span className="font-content text-sm text-[var(--color-text-main)]">{app.title}</span>
                 </button>
               ))}
@@ -58,7 +66,10 @@ export const Menu = ({ isOpen, onClose }: MenuProps) => {
             <div className="bg-[var(--color-surface-secondary)] p-2 border-t-[2px] border-[#1E1B2E] mt-auto">
               <button 
                 className="flex items-center gap-3 w-full p-2 rounded hover:bg-red-500/20 text-red-400 transition-colors text-left"
-                onClick={() => alert("Shutting down... (Not Implemented)")}
+                onClick={() => {
+                  onClose();
+                  useSystemStore.getState().setPowerState('off');
+                }}
               >
                 <img src="/icons/taskbar/power.png" alt="Power" className="w-5 h-5" style={{ imageRendering: 'pixelated' }} />
                 <span className="font-content text-sm">Power Off</span>
