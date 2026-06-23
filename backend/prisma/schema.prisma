@@ -56,3 +56,11 @@ model Container {
   status      String
   createdAt   DateTime @default(now())
 }
+
+model JournalEntry {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
