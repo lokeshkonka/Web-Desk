@@ -78,74 +78,103 @@ export const ContainersApp = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#1E1B2E] text-white p-4 font-sans overflow-auto">
-      <h2 className="text-xl font-bold mb-4">Containers</h2>
+    <div className="flex flex-col h-full bg-black/60 backdrop-blur-xl text-white p-6 font-sans overflow-auto custom-scrollbar">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-bold font-heading text-white drop-shadow-md flex items-center gap-2">
+          <span className="text-3xl">📦</span> Containers
+        </h2>
+        <div className="text-sm text-[#A8A29E] bg-white/5 px-3 py-1 rounded-full border border-white/10">
+          {containers.length} {containers.length === 1 ? 'Container' : 'Containers'}
+        </div>
+      </div>
       
-      <div className="flex gap-2 mb-6 bg-black/20 p-4 rounded border border-white/10">
-        <input 
-          value={name} 
-          onChange={e => setName(e.target.value)} 
-          placeholder="Container Name" 
-          className="bg-black/40 px-3 py-1.5 rounded border border-white/10 outline-none flex-1"
-        />
-        <select 
-          value={image} 
-          onChange={e => setImage(e.target.value)}
-          className="bg-black/40 px-3 py-1.5 rounded border border-white/10 outline-none"
-        >
-          {DEFAULT_IMAGES.map(img => <option key={img} value={img}>{img}</option>)}
-        </select>
-        <button 
-          onClick={handleCreate} 
-          disabled={loading || !name}
-          className="bg-[#8B5CF6] hover:bg-[#7C3AED] px-4 py-1.5 rounded font-medium transition-colors disabled:opacity-50"
-        >
-          {loading ? 'Creating...' : 'Create'}
-        </button>
+      <div className="flex flex-col sm:flex-row gap-3 mb-8 bg-white/5 p-4 rounded-xl border border-white/10 shadow-lg backdrop-blur-sm">
+        <div className="flex-1">
+          <label className="text-xs text-[#A8A29E] mb-1 block ml-1">Container Name</label>
+          <input 
+            value={name} 
+            onChange={e => setName(e.target.value)} 
+            placeholder="e.g. my-app-db" 
+            className="w-full bg-black/40 px-4 py-2.5 rounded-lg border border-white/10 outline-none focus:border-[var(--color-accent)] focus:ring-1 focus:ring-[var(--color-accent)] transition-all placeholder-[#A8A29E]/50 text-sm"
+          />
+        </div>
+        <div className="sm:w-1/3">
+          <label className="text-xs text-[#A8A29E] mb-1 block ml-1">Base Image</label>
+          <select 
+            value={image} 
+            onChange={e => setImage(e.target.value)}
+            className="w-full bg-black/40 px-4 py-2.5 rounded-lg border border-white/10 outline-none focus:border-[var(--color-accent)] transition-all text-sm appearance-none"
+          >
+            {DEFAULT_IMAGES.map(img => <option key={img} value={img}>{img}</option>)}
+          </select>
+        </div>
+        <div className="flex items-end">
+          <button 
+            onClick={handleCreate} 
+            disabled={loading || !name}
+            className="bg-[var(--color-accent)] hover:bg-[#D97706] text-white px-6 py-2.5 rounded-lg font-medium transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)] disabled:opacity-50 disabled:shadow-none h-[42px] flex items-center justify-center min-w-[100px]"
+          >
+            {loading ? (
+              <span className="animate-pulse">Deploying...</span>
+            ) : (
+              'Deploy'
+            )}
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {containers.map(c => (
-          <div key={c.id} className="bg-[#2D2D2D] rounded p-4 border border-white/5 flex flex-col gap-3 shadow-md">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-bold text-lg">{c.name}</h3>
-                <div className="text-xs text-gray-400 flex gap-2">
-                  <span>Image: {c.image}</span>
-                  <span>•</span>
-                  <span>ID: {c.containerId.substring(0, 8)}</span>
+          <div key={c.id} className="bg-white/5 rounded-xl p-5 border border-white/10 shadow-lg flex flex-col gap-4 hover:bg-white/10 transition-colors group">
+            <div className="flex justify-between items-start">
+              <div className="flex gap-3">
+                <div className={`mt-1 w-3 h-3 rounded-full shrink-0 ${c.status === 'running' ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)] animate-pulse' : 'bg-gray-500'}`} />
+                <div>
+                  <h3 className="font-bold text-lg leading-tight text-white">{c.name}</h3>
+                  <div className="text-xs text-[#A8A29E] mt-1 flex gap-2 items-center">
+                    <span className="bg-black/30 px-2 py-0.5 rounded font-mono text-[10px] border border-white/5">{c.image}</span>
+                    <span>•</span>
+                    <span className="font-mono text-[10px]">{c.containerId.substring(0, 8)}</span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className={`px-2 py-0.5 rounded text-xs font-bold ${c.status === 'running' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                  {c.status.toUpperCase()}
+              <div className="flex items-center">
+                <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase ${c.status === 'running' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'}`}>
+                  {c.status}
                 </span>
-                
-                <div className="flex gap-1 ml-4">
-                  {c.status !== 'running' && (
-                    <button onClick={() => handleAction(c.id, 'start')} className="px-3 py-1 bg-green-600/80 hover:bg-green-500 rounded text-xs">Start</button>
-                  )}
-                  {c.status === 'running' && (
-                    <button onClick={() => handleAction(c.id, 'stop')} className="px-3 py-1 bg-red-600/80 hover:bg-red-500 rounded text-xs">Stop</button>
-                  )}
-                  {c.status === 'running' && (
-                    <button onClick={() => handleOpenTerminal(c.containerId)} className="px-3 py-1 bg-[#4F46E5]/80 hover:bg-[#4F46E5] rounded text-xs">Terminal</button>
-                  )}
-                  <button onClick={() => handleViewLogs(c.id)} className="px-3 py-1 bg-gray-600/80 hover:bg-gray-500 rounded text-xs">Logs</button>
-                  <button onClick={() => handleAction(c.id, 'remove')} className="px-3 py-1 bg-red-900/80 hover:bg-red-800 rounded text-xs ml-2">Delete</button>
-                </div>
               </div>
             </div>
             
+            <div className="flex flex-wrap gap-2 mt-auto pt-2 border-t border-white/5">
+              {c.status !== 'running' && (
+                <button onClick={() => handleAction(c.id, 'start')} className="px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/30 rounded-md text-xs font-medium transition-colors flex-1 text-center">Start</button>
+              )}
+              {c.status === 'running' && (
+                <button onClick={() => handleAction(c.id, 'stop')} className="px-3 py-1.5 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 rounded-md text-xs font-medium transition-colors flex-1 text-center">Stop</button>
+              )}
+              {c.status === 'running' && (
+                <button onClick={() => handleOpenTerminal(c.containerId)} className="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-md text-xs font-medium transition-colors flex-1 text-center">Terminal</button>
+              )}
+              <button onClick={() => handleViewLogs(c.id)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-md text-xs font-medium transition-colors flex-1 text-center">Logs</button>
+              <button onClick={() => handleAction(c.id, 'remove')} className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-md text-xs font-medium transition-colors shrink-0">Delete</button>
+            </div>
+            
             {logs[c.id] !== undefined && (
-              <div className="bg-black/60 p-3 rounded text-xs font-mono text-gray-300 max-h-40 overflow-y-auto whitespace-pre-wrap">
+              <div className="bg-black/80 p-3 rounded-lg text-xs font-mono text-[#E0E0E0] max-h-48 overflow-y-auto whitespace-pre-wrap border border-white/5 mt-2 custom-scrollbar relative">
+                <div className="sticky top-0 right-0 flex justify-end mb-1">
+                  <button onClick={() => handleViewLogs(c.id)} className="text-[#A8A29E] hover:text-white bg-black/50 rounded px-1.5 py-0.5 text-[10px]">Close</button>
+                </div>
                 {logs[c.id] || 'No logs available.'}
               </div>
             )}
           </div>
         ))}
         {containers.length === 0 && !loading && (
-          <div className="text-center text-gray-500 py-10">No containers running.</div>
+          <div className="col-span-full flex flex-col items-center justify-center text-center text-[#A8A29E] py-16 bg-white/5 rounded-xl border border-white/5 border-dashed">
+            <span className="text-4xl mb-3 opacity-50">🛳️</span>
+            <p className="text-lg font-medium text-white mb-1">No containers running</p>
+            <p className="text-sm">Deploy your first container using the form above.</p>
+          </div>
         )}
       </div>
     </div>
