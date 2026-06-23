@@ -1,13 +1,9 @@
 import { useDesktopStore } from '../../store/useDesktopStore';
+import { useNotificationStore } from '../../store/notification.store';
 
 export const Workshop = () => {
-  const { theme, wallpaper, setTheme, setWallpaper } = useDesktopStore();
-
-  const themes = [
-    { id: 'cozy-retro', name: 'Cozy Retro' },
-    { id: 'dark', name: 'Dark Mode' },
-    { id: 'light', name: 'Light Mode' }
-  ];
+  const { wallpaper, setWallpaper } = useDesktopStore();
+  const { addNotification } = useNotificationStore();
 
   const wallpapers = [
     'pixel-cafe.png',
@@ -20,52 +16,53 @@ export const Workshop = () => {
     'sunset-lake.png'
   ];
 
-  return (
-    <div className="flex flex-col h-full bg-[#2A2438] text-[#F8FAFC] p-6 overflow-auto">
-      <h1 className="text-3xl font-heading mb-6 text-[#F59E0B] drop-shadow-sm">Workshop</h1>
-      
-      <div className="space-y-6">
-        <section className="p-5 bg-[#352F44] rounded-lg border-2 border-[#1E1B2E] shadow-inner">
-          <h2 className="text-xl font-heading mb-4 text-white">Theme</h2>
-          <div className="flex gap-3">
-            {themes.map(t => (
-              <button
-                key={t.id}
-                onClick={() => setTheme(t.id)}
-                className={`px-4 py-2 rounded border-2 transition-colors font-content text-sm
-                  ${theme === t.id ? 'bg-[var(--color-accent)] border-[#1E1B2E] text-black shadow-md' : 'bg-transparent border-[#1E1B2E] hover:bg-white/10'}
-                `}
-              >
-                {t.name}
-              </button>
-            ))}
-          </div>
-        </section>
+  const handleWallpaperSelect = async (w: string) => {
+    await setWallpaper(w);
+    addNotification({ type: 'success', title: 'Wallpaper Updated', message: 'Your desktop background has been changed successfully.' });
+  };
 
-        <section className="p-5 bg-[#352F44] rounded-lg border-2 border-[#1E1B2E] shadow-inner">
-          <h2 className="text-xl font-heading mb-4 text-white">Wallpaper</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {wallpapers.map(w => (
-              <button
-                key={w}
-                onClick={() => setWallpaper(w)}
-                className={`group relative aspect-video rounded overflow-hidden border-4 transition-all
-                  ${wallpaper === w ? 'border-[var(--color-accent)] shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'border-[#1E1B2E] hover:border-gray-500'}
-                `}
-              >
-                <img 
-                  src={`/Wallpapers/${w}`} 
-                  alt={w} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                  style={{ imageRendering: 'pixelated' }}
-                />
-                <div className="absolute bottom-0 left-0 w-full bg-black/60 backdrop-blur-sm p-1">
-                  <p className="text-xs font-content truncate px-1 text-center">{w.replace('.png', '').replace('-', ' ')}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
+  return (
+    <div className="flex flex-col h-full bg-[#1A1A24] text-[#F8FAFC] p-8 overflow-y-auto custom-scrollbar font-sans">
+      <div className="max-w-4xl mx-auto w-full">
+        <h1 className="text-3xl font-semibold mb-2 tracking-tight">Appearance Settings</h1>
+        <p className="text-gray-400 mb-8 text-sm">Personalize your workspace background and aesthetic.</p>
+        
+        <div className="space-y-8">
+          <section className="p-6 bg-[#252533] rounded-xl border border-white/5 shadow-sm">
+            <div className="mb-6">
+              <h2 className="text-xl font-medium text-white mb-1">Desktop Background</h2>
+              <p className="text-gray-400 text-sm">Choose an image to display on your desktop.</p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {wallpapers.map(w => (
+                <button
+                  key={w}
+                  onClick={() => handleWallpaperSelect(w)}
+                  className={`group relative aspect-video rounded-lg overflow-hidden border-2 transition-all duration-200 outline-none
+                    ${wallpaper === w ? 'border-[#3B82F6] ring-4 ring-[#3B82F6]/20 shadow-lg' : 'border-transparent hover:border-white/20'}
+                  `}
+                >
+                  <img 
+                    src={`/Wallpapers/${w}`} 
+                    alt={w} 
+                    className={`w-full h-full object-cover transition-transform duration-500 ${wallpaper === w ? 'scale-100' : 'group-hover:scale-110'}`} 
+                  />
+                  <div className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${wallpaper === w ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'} flex items-center justify-center`}>
+                    <span className="text-xs font-medium px-3 py-1.5 bg-black/60 rounded-full backdrop-blur-sm shadow-sm">Apply Background</span>
+                  </div>
+                  {wallpaper === w && (
+                    <div className="absolute bottom-2 right-2 bg-[#3B82F6] text-white p-1 rounded-full shadow-md">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
       </div>
     </div>
   );
