@@ -28,4 +28,4 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-CMD ["bun", "run", "index.ts"]
+CMD ["sh", "-c", "bunx prisma db push && bun run index.ts"]

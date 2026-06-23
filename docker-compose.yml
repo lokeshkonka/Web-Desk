@@ -1,31 +1,62 @@
+version: '3.8'
+
 services:
-  postgres:
-    image: postgres:17-alpine
-    container_name: webdesk-postgres
+  # The Web-Desk OS (Frontend + Backend unified)
+  webdesk:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: webdesk_app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:password123@webdesk_postgres:5432/webdesk?schema=public
+      - REDIS_URL=redis://redis_cache:6379
+    volumes:
+      - webdesk_uploads:/app/backend/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+      redis_cache:
+        condition: service_started
     restart: unless-stopped
 
+  # PostgreSQL Database
+  postgres_db:
+    image: postgres:15-alpine
+    container_name: webdesk_postgres
     environment:
-      POSTGRES_USER: webdesk
-      POSTGRES_PASSWORD: webdesk_password
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
       POSTGRES_DB: webdesk
-
     ports:
       - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  redis:
-    image: redis:8
-    container_name: webdesk-redis
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d webdesk"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
+  # Redis Cache & WebSockets
+  redis_cache:
+    image: redis:7-alpine
+    container_name: webdesk_redis
     ports:
       - "6379:6379"
-
     volumes:
       - redis_data:/data
+    restart: unless-stopped
 
 volumes:
+  webdesk_uploads:
+    name: webdesk_uploads
   postgres_data:
+    name: webdesk_postgres_data
   redis_data:
+    name: webdesk_redis_data

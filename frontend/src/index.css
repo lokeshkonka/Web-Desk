@@ -55,6 +55,18 @@ input[type="text"], input[type="search"], input[type="number"], input[type="emai
   cursor: url('/cursor/move.cur'), url('/cursor/move.png') 16 16, move;
 }
 
+/* Custom Resize Cursors for react-rnd and resize handles */
+.react-resizable-handle,
+[class*="resize-"],
+[style*="cursor: nwse-resize"],
+[style*="cursor: nesw-resize"],
+[style*="cursor: ns-resize"],
+[style*="cursor: ew-resize"],
+[style*="cursor: col-resize"],
+[style*="cursor: row-resize"] {
+  cursor: url('/cursor/resize.cur'), url('/cursor/resize.png') 16 16, nwse-resize !important;
+}
+
 /* Custom Scrollbars - Cozy Retro Theme */
 ::-webkit-scrollbar {
   width: 14px;
