@@ -60,20 +60,23 @@ export const Window = ({ windowData }: { windowData: WindowData }) => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.15 }}
-          onPointerDown={() => setActiveWindow(windowData.id)}
-          className={`flex flex-col w-full h-full bg-[var(--color-surface)] border-[3px] border-[#1E1B2E] shadow-2xl overflow-hidden rounded-lg
-            ${isActive ? 'ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-[var(--color-background)]' : ''}
+          onPointerDown={() => {
+            setActiveWindow(windowData.id);
+            // Don't stop propagation completely, but let's ensure it doesn't trigger desktop selection
+          }}
+          className={`flex flex-col w-full h-full bg-[var(--color-surface)]/95 backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden rounded-xl
+            ${isActive ? 'ring-1 ring-[var(--color-accent)] ring-offset-0 shadow-[0_0_30px_rgba(0,0,0,0.5)]' : 'shadow-lg opacity-95 hover:opacity-100'}
           `}
         >
           {/* Window Header */}
           <div 
-            className="window-drag-handle h-10 shrink-0 bg-[var(--color-surface-secondary)] border-b-[3px] border-[#1E1B2E] flex items-center px-3 select-none relative"
+            className="window-drag-handle h-10 shrink-0 bg-black/20 border-b border-white/5 flex items-center px-3 select-none relative"
             style={{ cursor: "url('/cursor/move.cur'), url('/cursor/move.png') 16 16, move" }}
           >
             {/* Title Section */}
             <div className="flex items-center gap-2 overflow-hidden select-none absolute left-3 right-[100px]">
-              <img src={windowData.icon} alt="icon" draggable={false} className="w-[22px] h-[22px] shrink-0 pointer-events-none" style={{ imageRendering: 'pixelated' }} />
-              <span className="font-heading text-[var(--color-text-main)] font-semibold tracking-wide text-[18.5px] truncate pointer-events-none">
+              <img src={windowData.icon} alt="icon" draggable={false} className="w-[18px] h-[18px] shrink-0 pointer-events-none drop-shadow-md" style={{ imageRendering: 'pixelated' }} />
+              <span className="font-heading text-white font-medium tracking-wide text-[16px] truncate pointer-events-none drop-shadow-md">
                 {windowData.title}
               </span>
             </div>
@@ -101,7 +104,8 @@ export const Window = ({ windowData }: { windowData: WindowData }) => {
           
           {/* Window Content */}
           <div 
-            className="flex-1 bg-[var(--color-background)] overflow-auto"
+            className="flex-1 bg-[var(--color-background)]/50 overflow-auto"
+            style={{ touchAction: 'auto' }}
             onPointerDownCapture={() => {
                // Focus window when clicking content, but don't prevent default so inputs still work
                setActiveWindow(windowData.id);
