@@ -24,6 +24,8 @@
   font-style: normal;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
+
 /* Custom Cursors */
 html, body, #root {
   cursor: url('/cursor/default.cur'), url('/cursor/default.png') 0 0, default;
@@ -41,8 +43,8 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
 }
 
-a, button, [role="button"], select, summary, input[type="submit"], input[type="button"] {
-  cursor: url('/cursor/pointer.cur'), url('/cursor/pointer.png') 0 0, pointer;
+a, button, [role="button"], select, summary, input[type="submit"], input[type="button"], .cursor-pointer {
+  cursor: url('/cursor/pointer.cur'), url('/cursor/pointer.png') 0 0, pointer !important;
 }
 
 input[type="text"], input[type="search"], input[type="number"], input[type="email"], input[type="url"], input[type="password"], textarea, code, pre {
@@ -84,6 +86,22 @@ input[type="text"], input[type="search"], input[type="number"], input[type="emai
 * {
   scrollbar-width: auto;
   scrollbar-color: var(--color-surface-secondary) var(--color-background);
+}
+
+/* Custom Scrollbar for Terminal / Dark contexts */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 5px;
+  border: none;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* --- Theme Polish & Accessibility (Phase 11) --- */
