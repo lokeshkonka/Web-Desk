@@ -1,4 +1,3 @@
-import { useNotificationStore } from '../store/notification.store';
 
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -34,11 +33,6 @@ export const apiFetch = async <T = any>(
     return await response.json() as T;
   } catch (error: any) {
     console.error(`[API Error] ${endpoint}:`, error);
-    useNotificationStore.getState().addNotification({
-      type: 'error',
-      title: 'Network Error',
-      message: error.message || 'Failed to communicate with the server.',
-    });
     throw error;
   }
 };
