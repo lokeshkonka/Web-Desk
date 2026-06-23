@@ -1,8 +1,10 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type WebSocket from "ws";
+
 import { TerminalService } from "../Services/Terminal.Service";
 
 const terminalService = new TerminalService();
+
+import type { WebSocket } from "ws";
 
 export const handleTerminalWebSocket = (connection: WebSocket, req: FastifyRequest) => {
   const sessionId = (req.query as any).sessionId;
@@ -21,9 +23,9 @@ export const handleTerminalWebSocket = (connection: WebSocket, req: FastifyReque
   }
 
   // Handle incoming data from the frontend
-  connection.on('message', (message: string) => {
+  connection.on('message', (message: Buffer | string) => {
     try {
-      const data = JSON.parse(message);
+      const data = JSON.parse(message.toString());
       if (data.type === 'input') {
         ptyProcess!.write(data.data);
       } else if (data.type === 'resize') {
@@ -35,7 +37,7 @@ export const handleTerminalWebSocket = (connection: WebSocket, req: FastifyReque
   });
 
   // Handle outgoing data from the pty to the frontend
-  const onData = ptyProcess.onData((data) => {
+  const onData = ptyProcess.onData((data: string) => {
     connection.send(JSON.stringify({ type: 'output', data }));
   });
 
