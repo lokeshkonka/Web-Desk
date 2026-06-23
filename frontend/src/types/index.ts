@@ -15,6 +15,7 @@ export interface DesktopApp {
   icon: string;
   x: number;
   y: number;
+  initialData?: any;
 }
 
 export interface AppMetadata {
