@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Editor as MonacoEditor } from '@monaco-editor/react';
 import { useEditorStore } from '../../store/editor.store';
+import { useNotificationStore } from '../../store/notification.store';
 
 export const EditorApp = () => {
   const { openedFiles, activeFileId, closeFile, setActiveFile, updateFileContent, saveFile } = useEditorStore();
@@ -11,23 +12,25 @@ export const EditorApp = () => {
 
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
         if (activeFileId) {
           const success = await saveFile(activeFileId);
           if (success) {
             setSaveStatus('Saved');
+            useNotificationStore.getState().addNotification({ type: 'success', title: 'File Saved', message: `Saved ${activeFile?.name || 'file'}` });
             setTimeout(() => setSaveStatus(null), 2000);
           } else {
             setSaveStatus('Failed to save file.');
+            useNotificationStore.getState().addNotification({ type: 'error', title: 'Save Failed', message: `Could not save ${activeFile?.name || 'file'}` });
             setTimeout(() => setSaveStatus(null), 3000);
           }
         }
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeFileId, saveFile]);
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, [activeFileId, saveFile, activeFile]);
 
   if (openedFiles.length === 0) {
     return (
@@ -95,6 +98,21 @@ export const EditorApp = () => {
               fontFamily: 'monospace',
               cursorBlinking: 'smooth',
               smoothScrolling: true,
+            }}
+            onMount={(editor, monaco) => {
+              editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+                saveFile(activeFile.id).then((success) => {
+                  if (success) {
+                    setSaveStatus('Saved');
+                    useNotificationStore.getState().addNotification({ type: 'success', title: 'File Saved', message: `Saved ${activeFile.name}` });
+                    setTimeout(() => setSaveStatus(null), 2000);
+                  } else {
+                    setSaveStatus('Failed to save file.');
+                    useNotificationStore.getState().addNotification({ type: 'error', title: 'Save Failed', message: `Could not save ${activeFile.name}` });
+                    setTimeout(() => setSaveStatus(null), 3000);
+                  }
+                });
+              });
             }}
           />
         )}
