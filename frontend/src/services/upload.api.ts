@@ -1,4 +1,21 @@
 import { apiFetch, API_URL } from './api';
+import { useNotificationStore } from '../store/notification.store';
+
+const notifyError = (title: string, error: any) => {
+  useNotificationStore.getState().addNotification({
+    type: 'error',
+    title,
+    message: error.message || 'An unexpected error occurred.',
+  });
+};
+
+const notifySuccess = (title: string, message: string) => {
+  useNotificationStore.getState().addNotification({
+    type: 'success',
+    title,
+    message,
+  });
+};
 
 export const uploadFileAPI = (
   file: File,
@@ -23,17 +40,24 @@ export const uploadFileAPI = (
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
-          resolve(JSON.parse(xhr.responseText));
+          const res = JSON.parse(xhr.responseText);
+          notifySuccess('Upload Complete', `Successfully uploaded "${file.name}".`);
+          resolve(res);
         } catch (e) {
+          notifySuccess('Upload Complete', `Successfully uploaded "${file.name}".`);
           resolve(xhr.responseText);
         }
       } else {
-        reject(new Error(`Upload failed with status ${xhr.status}`));
+        const err = new Error(`Upload failed with status ${xhr.status}`);
+        notifyError('Upload Failed', err);
+        reject(err);
       }
     };
 
     xhr.onerror = () => {
-      reject(new Error("Network error during upload"));
+      const err = new Error("Network error during upload");
+      notifyError('Upload Failed', err);
+      reject(err);
     };
 
     xhr.open("POST", `${API_URL}/upload`);
@@ -42,19 +66,40 @@ export const uploadFileAPI = (
 };
 
 export const deleteFileAPI = async (id: string) => {
-  return await apiFetch(`/upload/${id}`, {
-    method: "DELETE",
-  });
+  try {
+    const res = await apiFetch(`/upload/${id}`, {
+      method: "DELETE",
+    });
+    notifySuccess('File Deleted', 'File moved to trash.');
+    return res;
+  } catch (error) {
+    notifyError('Failed to delete file', error);
+    throw error;
+  }
 };
 
 export const permanentDeleteFileAPI = async (id: string) => {
-  return await apiFetch(`/upload/${id}/permanent`, {
-    method: "DELETE",
-  });
+  try {
+    const res = await apiFetch(`/upload/${id}/permanent`, {
+      method: "DELETE",
+    });
+    notifySuccess('File Destroyed', 'File permanently deleted.');
+    return res;
+  } catch (error) {
+    notifyError('Failed to delete file', error);
+    throw error;
+  }
 };
 
 export const restoreFileAPI = async (id: string) => {
-  return await apiFetch(`/upload/${id}/restore`, {
-    method: "POST",
-  });
+  try {
+    const res = await apiFetch(`/upload/${id}/restore`, {
+      method: "POST",
+    });
+    notifySuccess('File Restored', 'File successfully restored.');
+    return res;
+  } catch (error) {
+    notifyError('Failed to restore file', error);
+    throw error;
+  }
 };
