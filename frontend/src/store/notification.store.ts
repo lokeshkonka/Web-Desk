@@ -8,20 +8,26 @@ export interface Notification {
   title: string;
   message?: string;
   duration?: number;
+  createdAt?: number;
 }
 
 interface NotificationState {
   notifications: Notification[];
+  history: Notification[];
   addNotification: (notification: Omit<Notification, 'id'>) => void;
   removeNotification: (id: string) => void;
+  clearHistory: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set) => ({
   notifications: [],
+  history: [],
   addNotification: (notification) => {
     const id = Math.random().toString(36).substring(2, 9);
+    const newNotif = { ...notification, id, createdAt: Date.now() } as Notification & { createdAt: number };
     set((state) => ({
-      notifications: [...state.notifications, { ...notification, id }],
+      notifications: [...state.notifications, newNotif],
+      history: [newNotif, ...state.history],
     }));
 
     if (notification.duration !== 0) {
@@ -36,4 +42,5 @@ export const useNotificationStore = create<NotificationState>((set) => ({
     set((state) => ({
       notifications: state.notifications.filter((n) => n.id !== id),
     })),
+  clearHistory: () => set({ history: [] }),
 }));
