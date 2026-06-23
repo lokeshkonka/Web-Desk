@@ -9,12 +9,16 @@ import { EditorApp } from '../apps/Editor/Editor';
 
 import { ContainersApp } from '../apps/Containers/ContainersApp';
 import { HealthDashboard } from '../apps/HealthDashboard/HealthDashboard';
+import { WeatherApp } from '../apps/Weather/Weather';
+import { CalculatorApp } from '../apps/Calculator/Calculator';
+import { TrashApp } from '../apps/Trash/Trash';
+import { ImageViewerApp } from '../apps/ImageViewer/ImageViewer';
 
 export const appRegistry: Record<string, AppMetadata> = {
   editor: {
     id: 'editor',
     title: 'Editor',
-    icon: '/icons/desktop-apps/journal.png',
+    icon: '/icons/files/text.png',
     defaultWidth: 800,
     defaultHeight: 600,
     minWidth: 400,
@@ -74,7 +78,7 @@ export const appRegistry: Record<string, AppMetadata> = {
   containers: {
     id: 'containers',
     title: 'Containers',
-    icon: '/icons/desktop-apps/system.png',
+    icon: '/icons/desktop-apps/container.png',
     defaultWidth: 800,
     defaultHeight: 600,
     minWidth: 500,
@@ -84,16 +88,54 @@ export const appRegistry: Record<string, AppMetadata> = {
   health: {
     id: 'health',
     title: 'System Health',
-    icon: '/icons/desktop-apps/system.png',
+    icon: '/icons/desktop-apps/heart.png',
     defaultWidth: 700,
     defaultHeight: 500,
     minWidth: 400,
     minHeight: 300,
     component: HealthDashboard,
+  },
+  weather: {
+    id: 'weather',
+    title: 'Weather',
+    icon: '/icons/desktop-apps/whether.png',
+    defaultWidth: 500,
+    defaultHeight: 600,
+    minWidth: 400,
+    minHeight: 500,
+    component: WeatherApp,
+  },
+  calculator: {
+    id: 'calculator',
+    title: 'Calculator',
+    icon: '/icons/desktop-apps/calculator.png',
+    defaultWidth: 320,
+    defaultHeight: 480,
+    minWidth: 300,
+    minHeight: 450,
+    component: CalculatorApp,
+  },
+  trash: {
+    id: 'trash',
+    title: 'Trash',
+    icon: '/icons/desktop-apps/trash.png',
+    defaultWidth: 600,
+    defaultHeight: 450,
+    minWidth: 400,
+    minHeight: 300,
+    component: TrashApp,
   }
 };
 
 export const getAppContent = (appId: string, windowId: string, initialData?: any) => {
+  if (appId.startsWith('imageviewer')) {
+    return <ImageViewerApp initialData={initialData} />;
+  }
+
+  if (appId.startsWith('file-')) {
+    return <EditorApp />;
+  }
+
   const app = appRegistry[appId];
   if (!app) {
     return (
